@@ -1,86 +1,155 @@
 # Blog / Content Management Platform
 
-A full-stack blog & CMS built for the Full-Stack JavaScript Developer assessment.
+This is my submission for the Full-Stack JavaScript Developer Assessment — 
+a blog and content management platform with a REST API backend and a React 
+frontend. Readers can browse, search, and filter published posts, and 
+there's an admin dashboard where I can create, edit, publish, or delete 
+articles.
 
-- **Backend:** Node.js, Express, SQLite (via `better-sqlite3`)
-- **Frontend:** React (Vite), React Router, `react-markdown`
+> A quick note: I finished this a bit after the original deadline. 
+> Everything below is fully working and tested — I wanted to get it right 
+> rather than rush the last stretch.
 
-## Project structure
+## Live Project
 
-```
+- **Frontend:** https://blog-cms-frontend-hyqg.onrender.com
+- **Backend API:** https://blog-cms-backend-f2mz.onrender.com/api/posts
+- **GitHub:** https://github.com/Mahadharshini-M/blog-cms-platform
+
+Heads up — the backend runs on Render's free tier, so it spins down when 
+it's idle. The first request after a while might take 30-60 seconds to 
+wake it back up. Just give it a moment.
+
+## What it does
+
+**For readers:**
+- Browse published posts
+- Search by title or content, with debounced input so it doesn't hammer the API on every keystroke
+- Filter by category
+- Sort by newest, oldest, or title
+- Paginated results
+- Full post view with a cover image
+- Works on mobile too, not just desktop
+
+**For admins/authors:**
+- See every post, drafts included
+- Write new articles with a Markdown editor and live preview
+- Edit or delete anything
+- Flip a post between Draft and Published
+- Filter by category and status
+
+## A few screenshots
+
+| Admin Dashboard | Create Article |
+|---|---|
+| ![Admin Dashboard](./screenshots/admin-dashboard.png) | ![New Article Form](./screenshots/new-article-form.png) |
+
+| Article View | Category Filter |
+|---|---|
+| ![Article View](./screenshots/article-view.png) | ![Category Filter](./screenshots/category-filter.png) |
+
+## What I built it with
+
+**Frontend:** React, Vite, React Router, React Markdown
+**Backend:** Node.js, Express, SQLite (via better-sqlite3)
+**Deployment:** Render, with the code on GitHub
+
+## Project layout
+
 blog-cms/
-├── backend/     Express REST API + SQLite database
-└── frontend/    React app (public blog + admin/author view)
-```
+├── backend/ Express API + SQLite database
+├── frontend/ The React app
+├── screenshots/ Images used in this README
+└── README.md
 
-## 1. Backend setup
+## API
 
+| Method | Endpoint                 | What it does                                    |
+|--------|---------------------------|--------------------------------------------------|
+| GET    | `/api/posts`               | List posts. Supports `search`, `category`, `status`, `sort`, `page`, `limit` |
+| GET    | `/api/posts/categories`    | Returns the list of categories in use             |
+| GET    | `/api/posts/:idOrSlug`     | Fetch one post, by id or slug                     |
+| POST   | `/api/posts`                | Create a post                                     |
+| PUT    | `/api/posts/:id`            | Update a post — including switching Draft/Published |
+| DELETE | `/api/posts/:id`            | Delete a post                                     |
+| GET    | `/health`                   | Basic health check                                |
+
+One thing worth explaining: by default the API only returns Published 
+posts. To see Drafts too (the admin view), the request needs an `x-admin: 
+true` header, or `?admin=true` in the query string. I didn't build a full 
+login system for this — more on why below.
+
+## Running it yourself
+
+**Backend:**
 ```bash
 cd backend
 npm install
 cp .env.example .env
-npm run seed     # creates data/blog.db and inserts 55 sample posts
-npm run dev       # starts the API on http://localhost:5000 (or `npm start`)
+npm run seed      # fills the database with sample posts
+npm run dev        # runs on http://localhost:5000
 ```
 
-Health check: `GET http://localhost:5000/health`
-
-### API endpoints (mounted under `/api`)
-
-| Method | Endpoint             | Description                                              |
-| ------ | --------------------- | ---------------------------------------------------------- |
-| GET    | `/api/posts`           | List posts. Query params: `search`, `category`, `status`, `page`, `limit` |
-| GET    | `/api/posts/categories`| Distinct list of categories (used to populate filters)     |
-| GET    | `/api/posts/:idOrSlug` | Get a single post by numeric id or slug                    |
-| POST   | `/api/posts`           | Create a post                                               |
-| PUT    | `/api/posts/:id`       | Update a post (including toggling `status`)                 |
-| DELETE | `/api/posts/:id`       | Delete a post                                                |
-
-**Public vs. admin visibility:** by default, only `Published` posts are returned/visible.
-To view Draft posts (author/admin view), send either the header `x-admin: true`
-or the query param `?admin=true`. This is a lightweight stand-in for
-authentication — see "Assumptions" below.
-
-Search (`search`) matches against title and content, server-side, using SQL `LIKE`.
-
-## 2. Frontend setup
-
+**Frontend**, in a separate terminal:
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # points VITE_API_URL at the backend
-npm run dev              # starts the app on http://localhost:5173
+cp .env.example .env
+npm run dev        # runs on http://localhost:5173
 ```
 
-Open http://localhost:5173.
+The frontend points at the backend using `VITE_API_URL` — check 
+`frontend/.env.example` if you need to change it.
 
-- `/` — public list of published posts, with debounced search + category filter and pagination
-- `/posts/:slug` — full post view
-- `/admin` — author/admin view: all posts (Draft + Published), filterable by status/category, with delete
-- `/admin/posts/new` — create a post (Markdown editor with preview toggle, save as Draft or Publish)
-- `/admin/posts/:id/edit` — edit a post, including toggling Draft ⇄ Published
+## Pages
 
-## Running both at once
+- `/` — the blog homepage
+- `/posts/:slug` — a single article
+- `/admin` — the dashboard
+- `/admin/posts/new` — write a new article
+- `/admin/posts/:id/edit` — edit one
 
-Two terminals (backend on :5000, frontend on :5173) is simplest. If you'd
-rather run one command, install `concurrently` at the repo root and add a
-script that runs both `npm run dev` commands — intentionally left out here to
-keep each package self-contained per the assessment's "clean, minimal" ask.
+## How it's put together
 
-## Assumptions
+The React app talks to the Express API over REST. All the searching, 
+filtering, sorting, and pagination happen on the backend in SQL — I 
+deliberately didn't just fetch everything and filter it in the browser, 
+since that doesn't scale and wasn't what the brief asked for. The database 
+schema sets itself up automatically on first run, and the seed script 
+gives you realistic sample data to work with right away.
 
-- The brief didn't specify an authentication system, so the "author/admin
-  view" is gated by a simple `x-admin` flag rather than a full login system,
-  to keep the focus on the CRUD/API/frontend requirements. In a production
-  build this would be replaced with real authentication (e.g. JWT sessions)
-  guarding the `/admin` routes and the non-public API responses.
-- SQLite (file-based) was chosen over a hosted DB so the project runs
-  anywhere with zero external setup — swap `DB_PATH` in `.env` to relocate it.
-- Slugs are auto-generated from the title when not supplied, and de-duplicated
-  automatically if a collision occurs.
+## Some things I chose, and why
 
-## Tech notes
+- **No login system.** The brief didn't require authentication, so instead 
+  of building a full auth flow, the admin view is unlocked with a simple 
+  header/query flag. It's not meant to be secure — in a real production 
+  app I'd swap this for proper authentication guarding the admin routes 
+  and API responses.
+- **SQLite.** Picked mainly for how fast it is to get running locally with 
+  zero setup. The tradeoff is that Render's free tier wipes the disk on 
+  redeploy, so the database resets occasionally — the seed script handles 
+  repopulating it.
+- **Auto-generated slugs.** Titles get turned into slugs automatically, 
+  and if two posts would collide, it appends something to keep them 
+  unique.
+- **Cover images are URLs, not uploads.** Posts store an `image_url` 
+  rather than an uploaded file — simpler to implement, and it kept the 
+  focus on the core CRUD and API work the assessment asked for.
 
-- All search/filter/pagination happens server-side in SQL (`WHERE`/`LIKE`/`LIMIT`/`OFFSET`) — the frontend never filters a full dataset client-side.
-- Search input is debounced (400ms) before hitting the API.
-- Centralized Express error handler returns consistent `{ error, details? }` JSON with appropriate HTTP status codes (400 validation, 404 not found, 409 slug conflict, 500 fallback).
+## What I'd add if I kept going
+
+- Real authentication and role-based access
+- Actual image file uploads instead of URLs
+- A cloud database (Postgres, probably) so data survives redeploys
+- Comments and likes
+- A richer editor alongside Markdown
+- Tests, and a CI/CD pipeline
+
+## About me
+
+**Mahadharshini M**
+GitHub: https://github.com/Mahadharshini-M
+
+## Status
+
+Done, deployed, and working. 🚀
