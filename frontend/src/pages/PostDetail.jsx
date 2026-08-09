@@ -5,6 +5,7 @@ import { fetchPost } from "../api/posts.js";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { LoadingState, ErrorState } from "../components/StateBanners.jsx";
 import { readingTime } from "../utils/readingTime.js";
+import { postImage } from "../utils/postImage.js";
 
 export default function PostDetail() {
   const { slug } = useParams();
@@ -52,6 +53,11 @@ export default function PostDetail() {
         {new Date(post.published_date || post.created_date).toLocaleDateString()} ·{" "}
         {readingTime(post.content)}
       </p>
+      <img
+        className="post-detail-image"
+        src={postImage(post)}
+        alt={post.title}
+      />
       <div className="post-tags">
         {(post.tags || []).map((tag) => (
           <span key={tag} className="tag">

@@ -11,6 +11,7 @@ const emptyForm = {
   author: "",
   category: "",
   tagsInput: "",
+  image_url: "",
   status: "Draft",
 };
 
@@ -40,6 +41,7 @@ export default function PostForm() {
           author: post.author,
           category: post.category,
           tagsInput: (post.tags || []).join(", "),
+          image_url: post.image_url || "",
           status: post.status,
         });
         setLoadState("success");
@@ -74,6 +76,7 @@ export default function PostForm() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      image_url: form.image_url.trim() || undefined,
       status: statusOverride || form.status,
     };
 
@@ -152,6 +155,16 @@ export default function PostForm() {
             value={form.tagsInput}
             onChange={(e) => updateField("tagsInput", e.target.value)}
             placeholder="e.g. guide, tips, react"
+          />
+        </label>
+
+        <label>
+          Cover Image URL <span className="hint">(optional — a placeholder image is used if left blank)</span>
+          <input
+            type="url"
+            value={form.image_url}
+            onChange={(e) => updateField("image_url", e.target.value)}
+            placeholder="https://example.com/image.jpg"
           />
         </label>
 

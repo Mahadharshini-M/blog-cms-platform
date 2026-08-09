@@ -150,7 +150,7 @@ function createPost(req, res, next) {
       return res.status(400).json({ error: "Validation failed", details: errors });
     }
 
-    const { title, content, author, category, tags = [], status = "Draft" } = req.body;
+    const { title, content, author, category, tags = [], status = "Draft", image_url = null } = req.body;
 
     let slug = req.body.slug
       ? slugify(req.body.slug, { lower: true, strict: true })
@@ -166,8 +166,8 @@ function createPost(req, res, next) {
 
     const result = db
       .prepare(
-        `INSERT INTO posts (title, slug, content, author, category, tags, status, created_date, published_date)
-         VALUES (@title, @slug, @content, @author, @category, @tags, @status, @created_date, @published_date)`
+        `INSERT INTO posts (title, slug, content, author, category, tags, status, created_date, published_date, image_url)
+         VALUES (@title, @slug, @content, @author, @category, @tags, @status, @created_date, @published_date, @image_url)`
       )
       .run({
         title,
@@ -179,6 +179,7 @@ function createPost(req, res, next) {
         status,
         created_date: now,
         published_date: publishedDate,
+        image_url,
       });
 
     const created = db.prepare("SELECT * FROM posts WHERE id = ?").get(result.lastInsertRowid);
@@ -209,6 +210,7 @@ function updatePost(req, res, next) {
       category: req.body.category ?? existing.category,
       tags: JSON.stringify(req.body.tags ?? JSON.parse(existing.tags || "[]")),
       status: req.body.status ?? existing.status,
+      image_url: req.body.image_url !== undefined ? (req.body.image_url || null) : existing.image_url,
     };
 
     let slug = existing.slug;
@@ -235,8 +237,8 @@ function updatePost(req, res, next) {
 
     db.prepare(
       `UPDATE posts SET title=@title, slug=@slug, content=@content, author=@author,
-       category=@category, tags=@tags, status=@status, published_date=@published_date
-       WHERE id=@id`
+       category=@category, tags=@tags, status=@status, published_date=@published_date,
+       image_url=@image_url WHERE id=@id`
     ).run({ ...updated, slug, published_date: publishedDate, id });
 
     const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(id);

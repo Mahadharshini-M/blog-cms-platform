@@ -27,12 +27,20 @@ db.exec(`
     tags TEXT DEFAULT '[]',
     status TEXT NOT NULL CHECK (status IN ('Draft', 'Published')) DEFAULT 'Draft',
     created_date TEXT NOT NULL DEFAULT (datetime('now')),
-    published_date TEXT
+    published_date TEXT,
+    image_url TEXT
   );
 
   CREATE INDEX IF NOT EXISTS idx_posts_status ON posts (status);
   CREATE INDEX IF NOT EXISTS idx_posts_category ON posts (category);
   CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts (slug);
 `);
+
+// Add image_url to existing databases that predate this column
+try {
+  db.exec("ALTER TABLE posts ADD COLUMN image_url TEXT");
+} catch {
+  // Column already exists — safe to ignore
+}
 
 module.exports = db;

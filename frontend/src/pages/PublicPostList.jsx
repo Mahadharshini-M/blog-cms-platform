@@ -6,9 +6,10 @@ import PostCard from "../components/PostCard.jsx";
 import Pagination from "../components/Pagination.jsx";
 import { LoadingState, ErrorState, EmptyState } from "../components/StateBanners.jsx";
 import { readingTime } from "../utils/readingTime.js";
+import { postImage } from "../utils/postImage.js";
 
 function excerpt(markdown, length = 260) {
-  const plain = markdown.replace(/[#*_`>-]/g, "").replace(/\s+/g, " ").trim();
+  const plain = markdown.replace(/[#*_`>]/g, "").replace(/-/g, " ").replace(/\s+/g, " ").trim();
   return plain.length > length ? `${plain.slice(0, length)}…` : plain;
 }
 
@@ -73,9 +74,16 @@ export default function PublicPostList() {
           <>
             {featured && (
               <article className="featured-card">
+                <img
+                  className="featured-card-image"
+                  src={postImage(featured)}
+                  alt={featured.title}
+                />
+                <div className="featured-card-body">
                 <p className="post-meta">
-                  {featured.category} &middot;{" "}
-                  {new Date(featured.published_date || featured.created_date).toLocaleDateString()} &middot;{" "}
+                  By {featured.author} ·{" "}
+                  {featured.category} ·{" "}
+                  {new Date(featured.published_date || featured.created_date).toLocaleDateString()} ·{" "}
                   {readingTime(featured.content)}
                 </p>
                 <h2>
@@ -86,6 +94,7 @@ export default function PublicPostList() {
                   {(featured.tags || []).map((tag) => (
                     <span key={tag} className="tag">#{tag}</span>
                   ))}
+                </div>
                 </div>
               </article>
             )}

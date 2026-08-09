@@ -87,8 +87,8 @@ function randomPastDate(daysBack) {
 
 function run() {
   const insert = db.prepare(`
-    INSERT INTO posts (title, slug, content, author, category, tags, status, created_date, published_date)
-    VALUES (@title, @slug, @content, @author, @category, @tags, @status, @created_date, @published_date)
+    INSERT INTO posts (title, slug, content, author, category, tags, status, created_date, published_date, image_url)
+    VALUES (@title, @slug, @content, @author, @category, @tags, @status, @created_date, @published_date, @image_url)
   `);
 
   const clear = db.prepare("DELETE FROM posts");
@@ -126,6 +126,7 @@ function run() {
       status,
       created_date: createdDate,
       published_date: publishedDate,
+      image_url: `https://picsum.photos/seed/${slug}/800/450`,
     });
   }
 

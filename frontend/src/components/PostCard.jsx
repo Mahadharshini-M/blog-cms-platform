@@ -1,21 +1,34 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import StatusBadge from "./StatusBadge.jsx";
 import { readingTime } from "../utils/readingTime.js";
 import { categoryColor } from "../utils/categoryColors.js";
+import { postImage } from "../utils/postImage.js";
 
 function excerpt(markdown, length = 140) {
-  const plain = markdown.replace(/[#*_`>-]/g, "").replace(/\s+/g, " ").trim();
+  const plain = markdown.replace(/[#*_`>]/g, "").replace(/-/g, " ").replace(/\s+/g, " ").trim();
   return plain.length > length ? `${plain.slice(0, length)}…` : plain;
 }
 
 export default function PostCard({ post, adminView = false, index = 0 }) {
-  const linkTo = adminView ? `/admin/posts/${post.id}/edit` : `/posts/${post.slug}`;
+  const navigate = useNavigate();
+  const linkTo = adminView ? `/posts/${post.slug}` : `/posts/${post.slug}`;
+  const editTo = `/admin/posts/${post.id}/edit`;
 
   return (
-    <article className="post-card" style={{ "--card-delay": `${index * 40}ms` }}>
+    <article
+      className="post-card"
+      style={{ "--card-delay": `${index * 40}ms`, cursor: "pointer" }}
+      onClick={() => navigate(linkTo)}
+    >
+      <img
+        className="post-card-image"
+        src={postImage(post, 400, 225)}
+        alt={post.title}
+        loading="lazy"
+      />
       <div className="post-card-header">
         <h3>
-          <Link to={adminView ? `/posts/${post.slug}` : linkTo}>{post.title}</Link>
+          <Link to={linkTo} onClick={(e) => e.stopPropagation()}>{post.title}</Link>
         </h3>
         {adminView && <StatusBadge status={post.status} />}
       </div>
@@ -38,8 +51,12 @@ export default function PostCard({ post, adminView = false, index = 0 }) {
       </div>
       {adminView && (
         <div className="post-card-actions">
-          <Link to={`/admin/posts/${post.id}/edit`} className="btn btn-small">
-          Edit Article
+          <Link
+            to={editTo}
+            className="btn btn-small"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Edit Article
           </Link>
         </div>
       )}
