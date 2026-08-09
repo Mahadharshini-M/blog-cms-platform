@@ -44,3 +44,10 @@ try {
 }
 
 module.exports = db;
+
+// Auto-seed on first start only — never re-seeds if posts already exist
+const { run: seedDatabase } = require("./seed");
+if (db.prepare("SELECT COUNT(*) AS count FROM posts").get().count === 0) {
+  console.log("Database is empty — seeding...");
+  seedDatabase();
+}

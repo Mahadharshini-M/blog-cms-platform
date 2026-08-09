@@ -134,4 +134,8 @@ function run() {
   console.log(`Seeded ${posts.length} posts.`);
 }
 
-run();
+if (require.main === module) {
+  run();
+}
+
+module.exports = { run };
